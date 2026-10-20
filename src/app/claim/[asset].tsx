@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { describeApiError } from '@/api/errors';
 import { ClaimFlow } from '@/components/claim/ClaimFlow';
 import { Card } from '@/components/ui/Card';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 import { Screen } from '@/components/ui/Screen';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { StateMessage } from '@/components/ui/StateMessage';
@@ -23,6 +24,7 @@ const ClaimSkeleton = () => (
 
 const ClaimScreen = () => {
   const { asset } = useLocalSearchParams<{ asset: string }>();
+  const router = useRouter();
   const state = useClaimSetup(asset);
 
   const renderStatusContent = () => {
@@ -50,7 +52,15 @@ const ClaimScreen = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: `Claim ${asset}` }} />
+      <Stack.Screen
+        options={{
+          title: `Claim ${asset}`,
+          // Opened directly (reload, shared link): there is no back, so offer a way home.
+          headerLeft: router.canGoBack()
+            ? undefined
+            : () => <HeaderButton label="Home" onPress={() => router.replace('/')} />,
+        }}
+      />
       {state.status === 'ready' ? (
         <ClaimFlow asset={asset} setup={state.setup} />
       ) : (

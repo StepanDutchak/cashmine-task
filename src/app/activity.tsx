@@ -1,10 +1,11 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { describeApiError } from '@/api/errors';
 import { ActivityRow } from '@/components/activity/ActivityRow';
 import { AppButton } from '@/components/ui/AppButton';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 import { screenColumn } from '@/components/ui/Screen';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { StateMessage } from '@/components/ui/StateMessage';
@@ -27,6 +28,7 @@ const ActivitySkeleton = () => (
 
 const ActivityScreen = () => {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const activityQuery = useActivity();
   const { isRefreshing, refresh } = useManualRefresh(activityQuery.refetch);
   const { data: items, hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = activityQuery;
@@ -69,7 +71,15 @@ const ActivityScreen = () => {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Activity' }} />
+      <Stack.Screen
+        options={{
+          title: 'Activity',
+          // Opened directly (reload, shared link): there is no back, so offer a way home.
+          headerLeft: router.canGoBack()
+            ? undefined
+            : () => <HeaderButton label="Home" onPress={() => router.replace('/')} />,
+        }}
+      />
       <FlatList
         style={styles.list}
         contentContainerStyle={[screenColumn, { paddingBottom: spacing.xl + insets.bottom }]}
