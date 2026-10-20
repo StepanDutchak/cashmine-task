@@ -1,56 +1,45 @@
-# Welcome to your Expo app 👋
+# CashMine: payback balances and claims
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Live:** https://cashmine-task.vercel.app (built for a phone screen, about 390 px wide)
 
-## Get started
+On first open the app asks for your API token. It is kept only in this browser and can be changed with **Change token** on the Home screen.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run locally
 
 ```bash
-npm run reset-project
+npm install
+npx expo start --web
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+```bash
+npm test
+```
 
-### Other setup steps
+```bash
+npm run typecheck
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+The token is never read from env or bundled. The app asks for it at runtime. The API base URL is in [`src/config/api.ts`](src/config/api.ts).
 
-## Learn more
+## What works
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Balances (Home):** available, pending and claiming per asset; the available total in USD (with pending and claiming totals); how fresh the snapshot is, from the server's `asOf`, with a warning when it is older than 60 s; auto refresh every 15 s and a Refresh button; skeleton, error with retry, and empty states.
+- **Claim:** pick an asset, enter an amount or tap **Max**, choose a destination (no default when there is more than one), see the fee and the amount you receive, review, then confirm. The input is validated against the API rules: format, decimals, minimum, available, and the fee must be covered.
+- **Claim tracking:** a status screen polls until the claim completes or fails, and shows the failure reason. Assets on Home show **Claim in progress** or **Last claim failed**.
+- **Safe retries:** each claim attempt gets one Idempotency-Key for one exact request. Timeouts, network errors and 5xx responses are retried with the same key, so a claim can never be created twice. An attempt whose result is still unknown survives navigation and reloads.
+- **Activity:** a paginated history of accruals, reversals and claims.
+- **Tests:** 53 unit tests for amount parsing, validation, fee, USD totals and the balance-after-claim logic (`src/money/__tests__`, `src/claims/__tests__`).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Decisions, the AI workflow and known issues are in [NOTES.md](NOTES.md). AI conversations are in [`ai-logs/`](ai-logs/).
 
-## Join the community
+## Structure
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/app         routes only (Home, claim/[asset], claims/[id], activity)
+src/api         fetch client, zod schemas, endpoints, errors, query keys
+src/money       bigint amount logic (pure, unit tested)
+src/claims      idempotent attempts, in-flight claim tracking, submission state
+src/hooks       TanStack Query hooks
+src/components  UI (shared kit in components/ui)
+src/theme       design tokens
+```
