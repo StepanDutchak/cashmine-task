@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { ClaimAttempt, createClaimAttempt, loadUnresolvedAttempt } from '@/claims/claimAttempt';
 import { toSubmissionState } from '@/claims/submissionState';
+import { Screen } from '@/components/ui/Screen';
 import { StateMessage } from '@/components/ui/StateMessage';
 import { ClaimSetup } from '@/hooks/useClaimSetup';
 import { useSubmitClaim } from '@/hooks/useSubmitClaim';
@@ -43,18 +44,24 @@ export const ClaimFlow = ({ asset, setup }: ClaimFlowProps) => {
 
   if (!attempt && !canClaimAnything(rules)) {
     return (
-      <StateMessage
-        icon="◎"
-        title="Not enough to claim yet"
-        message={`You can claim from ${formatUnits(rules.minAmount, rules.decimals)} ${asset}, and the amount must cover the fee.`}
-        actionLabel="Back to balances"
-        onAction={leave}
-      />
+      <Screen>
+        <StateMessage
+          icon="hourglass-outline"
+          title="Not enough to claim yet"
+          message={`You can claim from ${formatUnits(rules.minAmount, rules.decimals)} ${asset}, and the amount must cover the fee.`}
+          actionLabel="Back to balances"
+          onAction={leave}
+        />
+      </Screen>
     );
   }
 
   if (destinations.length === 0) {
-    return <StateMessage icon="!" title="No destination available" message={`There is nowhere to send ${asset} yet.`} />;
+    return (
+      <Screen>
+        <StateMessage icon="alert-circle-outline" title="No destination available" message={`There is nowhere to send ${asset} yet.`} />
+      </Screen>
+    );
   }
 
   if (!attempt) {

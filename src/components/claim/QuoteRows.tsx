@@ -1,31 +1,37 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { Amount } from '@/components/ui/Amount';
 import { DetailRow } from '@/components/ui/DetailRow';
 import { formatUnits } from '@/money/amount';
 import { ClaimQuote } from '@/money/claimAmount';
-import { spacing } from '@/theme/tokens';
-import { groupDigits } from '@/utils/format';
+import { colors, fontSize, fonts, spacing } from '@/theme/tokens';
 
 type QuoteRowsProps = {
   quote: ClaimQuote;
   decimals: number;
   asset: string;
-  showAmount?: boolean;
 };
 
-export const QuoteRows = ({ quote, decimals, asset, showAmount = false }: QuoteRowsProps) => {
-  const format = (units: bigint) => `${groupDigits(formatUnits(units, decimals))} ${asset}`;
-  return (
-    <View style={styles.container}>
-      {showAmount ? <DetailRow label="You claim" value={format(quote.amount)} /> : null}
-      <DetailRow label="Fee" value={`− ${format(quote.fee)}`} />
-      <DetailRow label="You receive" value={format(quote.receive)} emphasized />
+export const QuoteRows = ({ quote, decimals, asset }: QuoteRowsProps) => (
+  <View style={styles.container}>
+    <DetailRow label="Fee" value={<Amount value={`−${formatUnits(quote.fee, decimals)}`} asset={asset} size="sm" />} />
+    <View style={styles.receive}>
+      <Text style={styles.receiveLabel}>You receive</Text>
+      <Amount value={formatUnits(quote.receive, decimals)} asset={asset} size="lg" tone="positive" />
     </View>
-  );
-};
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+  receive: {
+    gap: spacing.xs,
+  },
+  receiveLabel: {
+    fontFamily: fonts.displayMedium,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
 });

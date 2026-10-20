@@ -1,8 +1,8 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/tokens';
+import { colors, fontSize, fonts, layout, radius, spacing } from '@/theme/tokens';
 
-type Variant = 'primary' | 'secondary';
+type Variant = 'primary' | 'secondary' | 'ghost';
 
 type AppButtonProps = {
   label: string;
@@ -12,6 +12,8 @@ type AppButtonProps = {
   loading?: boolean;
 };
 
+const PRESSED_SCALE = 0.98;
+
 export const AppButton = ({
   label,
   onPress,
@@ -19,25 +21,25 @@ export const AppButton = ({
   disabled = false,
   loading = false,
 }: AppButtonProps) => {
-  const isPrimary = variant === 'primary';
   const isInactive = disabled || loading;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: isInactive, busy: loading }}
+      aria-disabled={isInactive}
+      aria-busy={loading}
       disabled={isInactive}
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        isPrimary ? styles.primary : styles.secondary,
+        styles[variant],
         isInactive && styles.inactive,
         pressed && styles.pressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? colors.onPrimary : colors.primary} />
+        <ActivityIndicator color={variant === 'primary' ? colors.onPrimary : colors.primary} />
       ) : (
-        <Text style={[styles.label, isPrimary ? styles.labelPrimary : styles.labelSecondary]}>
+        <Text style={[styles.label, variant === 'primary' ? styles.labelPrimary : styles.labelSecondary]}>
           {label}
         </Text>
       )}
@@ -47,9 +49,9 @@ export const AppButton = ({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: layout.minTouchTarget + spacing.xs,
+    minHeight: layout.minTouchTarget + spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -59,15 +61,19 @@ const styles = StyleSheet.create({
   secondary: {
     backgroundColor: colors.primarySoft,
   },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
   inactive: {
     opacity: 0.5,
   },
   pressed: {
-    opacity: 0.75,
+    opacity: 0.85,
+    transform: [{ scale: PRESSED_SCALE }],
   },
   label: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
   },
   labelPrimary: {
     color: colors.onPrimary,

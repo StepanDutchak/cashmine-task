@@ -1,20 +1,24 @@
+import { Ionicons } from '@expo/vector-icons';
+import { ComponentProps } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ActivityItem } from '@/api/schemas';
-import { colors, fontSize, fontWeight, radius, spacing } from '@/theme/tokens';
-import { groupDigits } from '@/utils/format';
+import { Amount } from '@/components/ui/Amount';
+import { colors, fontSize, fontWeight, fonts, radius, spacing } from '@/theme/tokens';
 
-const TYPE_LABEL: Record<ActivityItem['type'], string> = {
-  accrual: 'Payback',
-  reversal: 'Reversal',
-  claim: 'Claim',
+type TypeStyle = { label: string; icon: ComponentProps<typeof Ionicons>['name']; ink: string; tint: string };
+
+const TYPE_STYLE: Record<ActivityItem['type'], TypeStyle> = {
+  accrual: { label: 'Payback', icon: 'arrow-down', ink: colors.primary, tint: colors.primarySoft },
+  reversal: { label: 'Reversal', icon: 'arrow-undo', ink: colors.warning, tint: colors.warningSoft },
+  claim: { label: 'Claim', icon: 'arrow-up', ink: colors.text, tint: colors.background },
 };
 
-const STATUS_TONE: Record<ActivityItem['status'], 'neutral' | 'warning' | 'danger'> = {
-  pending: 'warning',
-  confirmed: 'neutral',
-  completed: 'neutral',
-  failed: 'danger',
+const STATUS_COLOR: Record<ActivityItem['status'], string> = {
+  pending: colors.warning,
+  confirmed: colors.textMuted,
+  completed: colors.textMuted,
+  failed: colors.danger,
 };
 
 // Fixed locale so dates match the English UI copy.
@@ -26,24 +30,29 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 export const ActivityRow = ({ item }: { item: ActivityItem }) => {
-  const isNegative = item.amount.startsWith('-');
-  const tone = STATUS_TONE[item.status];
+  const type = TYPE_STYLE[item.type];
   const subtitle = [item.exchange, dateFormatter.format(new Date(item.createdAt))].filter(Boolean).join(' · ');
+  const isIncoming = !item.amount.startsWith('-');
 
   return (
     <View style={styles.row}>
+      <View style={[styles.icon, { backgroundColor: type.tint }]}>
+        <Ionicons name={type.icon} size={18} color={type.ink} />
+      </View>
       <View style={styles.body}>
-        <Text style={styles.title}>{TYPE_LABEL[item.type]}</Text>
+        <Text style={styles.title}>{type.label}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
       <View style={styles.trailing}>
-        <Text style={[styles.amount, isNegative ? styles.negative : styles.positive]} numberOfLines={1}>
-          {isNegative ? '' : '+'}
-          {groupDigits(item.amount)} {item.asset}
-        </Text>
-        <Text style={[styles.status, tone === 'warning' && styles.warning, tone === 'danger' && styles.danger]}>
-          {item.status}
-        </Text>
+        <Amount
+          value={item.amount}
+          asset={item.asset}
+          size="sm"
+          tone={isIncoming ? 'positive' : 'default'}
+          showPlusSign
+          align="right"
+        />
+        <Text style={[styles.status, { color: STATUS_COLOR[item.status] }]}>{item.status}</Text>
       </View>
     </View>
   );
@@ -52,18 +61,27 @@ export const ActivityRow = ({ item }: { item: ActivityItem }) => {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
   },
+  icon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   body: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 2,
   },
   title: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
     color: colors.text,
   },
   subtitle: {
@@ -73,26 +91,10 @@ const styles = StyleSheet.create({
   trailing: {
     flexShrink: 1,
     alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  amount: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-  },
-  positive: {
-    color: colors.primary,
-  },
-  negative: {
-    color: colors.text,
+    gap: 2,
   },
   status: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
-  },
-  warning: {
-    color: colors.warning,
-  },
-  danger: {
-    color: colors.danger,
+    fontWeight: fontWeight.semibold,
   },
 });

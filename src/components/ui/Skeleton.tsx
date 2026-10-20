@@ -9,9 +9,10 @@ const MIN_OPACITY = 0.45;
 type SkeletonProps = {
   width?: DimensionValue;
   height: number;
+  color?: string;
 };
 
-export const Skeleton = ({ width = '100%', height }: SkeletonProps) => {
+export const Skeleton = ({ width = '100%', height, color = colors.skeleton }: SkeletonProps) => {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -26,12 +27,11 @@ export const Skeleton = ({ width = '100%', height }: SkeletonProps) => {
     return () => pulse.stop();
   }, [opacity]);
 
-  return <Animated.View style={[styles.block, { width, height, opacity }]} />;
+  return <Animated.View style={[styles.block, { width, height, opacity, backgroundColor: color }]} />;
 };
 
 const styles = StyleSheet.create({
   block: {
-    backgroundColor: colors.skeleton,
     borderRadius: radius.sm,
   },
 });

@@ -1,14 +1,16 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AppButton } from '@/components/ui/AppButton';
 import { Card } from '@/components/ui/Card';
+import { Screen } from '@/components/ui/Screen';
 import { ClaimSetup } from '@/hooks/useClaimSetup';
 import { formatUnits } from '@/money/amount';
 import { describeClaimAmountError, validateClaimAmount } from '@/money/claimAmount';
-import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/tokens';
-import { groupDigits } from '@/utils/format';
+import { colors, fontSize, fonts, layout, radius, spacing } from '@/theme/tokens';
 
+import { AssetHeader } from './AssetHeader';
 import { DestinationPicker } from './DestinationPicker';
+import { QuickAmounts } from './QuickAmounts';
 import { QuoteRows } from './QuoteRows';
 
 type ClaimEditStepProps = {
@@ -32,45 +34,42 @@ export const ClaimEditStep = ({
   showErrors,
   onReview,
 }: ClaimEditStepProps) => {
-  const { rules, destinations } = setup;
+  const { rules, destinations, balance } = setup;
   const result = validateClaimAmount(amountInput, rules);
   const errorMessage =
     !result.ok && (showErrors || amountInput !== '') ? describeClaimAmountError(result.error, rules, asset) : null;
   const destinationError = showErrors && !destinationId ? 'Choose where to send your claim.' : null;
-  const format = (units: bigint) => `${groupDigits(formatUnits(units, rules.decimals))} ${asset}`;
 
   return (
-    <>
+    <Screen footer={<AppButton label="Review claim" onPress={onReview} />}>
+      <AssetHeader balance={balance} />
       <Card>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>Amount</Text>
-          <Text style={styles.available}>Available {format(rules.available)}</Text>
-        </View>
+        <Text style={styles.label}>Amount to claim</Text>
         <View style={[styles.inputRow, errorMessage && styles.inputRowError]}>
           <TextInput
             value={amountInput}
             onChangeText={onAmountChange}
-            placeholder="0.00"
-            placeholderTextColor={colors.textMuted}
+            placeholder="0"
+            placeholderTextColor={colors.textFaint}
             keyboardType="decimal-pad"
             inputMode="decimal"
             autoCorrect={false}
             style={styles.input}
             accessibilityLabel={`Amount in ${asset}`}
           />
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => onAmountChange(formatUnits(rules.available, rules.decimals))}
-            style={({ pressed }) => [styles.max, pressed && styles.pressed]}
-          >
-            <Text style={styles.maxLabel}>Max</Text>
-          </Pressable>
+          <Text style={styles.ticker}>{asset}</Text>
         </View>
+        <QuickAmounts rules={rules} currentInput={amountInput} onSelect={onAmountChange} />
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         <Text style={styles.hint}>
-          Minimum {format(rules.minAmount)} · Fee {format(rules.fee)}
+          Minimum {formatUnits(rules.minAmount, rules.decimals)} {asset} · fee {formatUnits(rules.fee, rules.decimals)}{' '}
+          {asset}, taken from the amount
         </Text>
-        {result.ok ? <QuoteRows quote={result.quote} decimals={rules.decimals} asset={asset} /> : null}
+        {result.ok ? (
+          <View style={styles.quote}>
+            <QuoteRows quote={result.quote} decimals={rules.decimals} asset={asset} />
+          </View>
+        ) : null}
       </Card>
       {destinations.length > 1 ? (
         <Card>
@@ -82,35 +81,25 @@ export const ClaimEditStep = ({
           />
         </Card>
       ) : null}
-      <AppButton label="Review claim" onPress={onReview} />
-    </>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
   label: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
     color: colors.text,
-  },
-  available: {
-    flexShrink: 1,
-    textAlign: 'right',
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingLeft: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: colors.background,
   },
   inputRowError: {
     borderColor: colors.danger,
@@ -118,23 +107,15 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minWidth: 0,
-    minHeight: layout.minTouchTarget + spacing.sm,
+    minHeight: layout.minTouchTarget + spacing.xl,
+    fontFamily: fonts.mono,
     fontSize: fontSize.lg,
     color: colors.text,
   },
-  max: {
-    minHeight: layout.minTouchTarget,
-    minWidth: layout.minTouchTarget,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-  maxLabel: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
+  ticker: {
+    fontFamily: fonts.displayMedium,
+    fontSize: fontSize.md,
+    color: colors.textMuted,
   },
   error: {
     fontSize: fontSize.sm,
@@ -142,6 +123,12 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: fontSize.xs,
+    lineHeight: 18,
     color: colors.textMuted,
+  },
+  quote: {
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
 });

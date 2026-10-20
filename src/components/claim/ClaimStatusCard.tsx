@@ -1,99 +1,72 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Claim } from '@/api/schemas';
+import { Amount } from '@/components/ui/Amount';
 import { Card } from '@/components/ui/Card';
 import { DetailRow } from '@/components/ui/DetailRow';
-import { colors, fontSize, fontWeight, radius, spacing } from '@/theme/tokens';
-import { groupDigits } from '@/utils/format';
+import { colors, fontSize, fonts, radius, spacing } from '@/theme/tokens';
 
-const STATUS_COPY = {
-  pending: { title: 'Claim in progress', message: 'This usually takes up to 20 seconds.' },
-  completed: { title: 'Claim completed', message: 'The payout has been sent.' },
-  failed: { title: 'Claim failed', message: 'The amount is back in your available balance.' },
+import { ClaimTimeline } from './ClaimTimeline';
+
+const HEADLINE = {
+  pending: 'Your claim is on its way',
+  completed: 'Claim completed',
+  failed: 'Claim failed',
+} as const;
+
+const SUBLINE = {
+  pending: "You can leave this screen. We'll keep checking.",
+  completed: 'The payout has been sent.',
+  failed: 'The amount is back in your available balance.',
 } as const;
 
 export const ClaimStatusCard = ({ claim }: { claim: Claim }) => {
-  const copy = STATUS_COPY[claim.status];
-  const format = (value: string) => `${groupDigits(value)} ${claim.asset}`;
-
+  const isFailed = claim.status === 'failed';
   return (
-    <Card>
+    <>
       <View style={styles.header}>
-        <View style={[styles.indicator, styles[claim.status]]}>
-          {claim.status === 'pending' ? (
-            <ActivityIndicator color={colors.primary} />
-          ) : (
-            <Text style={styles.indicatorText}>{claim.status === 'completed' ? '✓' : '✕'}</Text>
-          )}
-        </View>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>{copy.title}</Text>
-          <Text style={styles.message}>{copy.message}</Text>
-        </View>
+        <Text style={styles.headline}>{HEADLINE[claim.status]}</Text>
+        <Text style={styles.subline}>{SUBLINE[claim.status]}</Text>
       </View>
-      {claim.failureReason ? <Text style={styles.failure}>Reason: {claim.failureReason}</Text> : null}
-      <View style={styles.rows}>
-        <DetailRow label="Claimed" value={format(claim.amount)} />
-        <DetailRow label="Fee" value={`− ${format(claim.fee)}`} />
+      <Card>
+        <ClaimTimeline claim={claim} />
+        {claim.failureReason ? <Text style={styles.failure}>{claim.failureReason}</Text> : null}
+      </Card>
+      <Card>
+        <DetailRow label="Claimed" value={<Amount value={claim.amount} asset={claim.asset} size="sm" />} />
+        <DetailRow label="Fee" value={<Amount value={`−${claim.fee}`} asset={claim.asset} size="sm" />} />
         <DetailRow
-          label={claim.status === 'failed' ? 'Not received' : 'You receive'}
-          value={format(claim.receiveAmount)}
-          emphasized={claim.status !== 'failed'}
+          label={isFailed ? 'Not received' : 'You receive'}
+          value={
+            <Amount value={claim.receiveAmount} asset={claim.asset} size="md" tone={isFailed ? 'default' : 'positive'} />
+          }
         />
         <DetailRow label="Claim ID" value={claim.id} />
-      </View>
-    </Card>
+      </Card>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  indicator: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pending: {
-    backgroundColor: colors.primarySoft,
-  },
-  completed: {
-    backgroundColor: colors.primary,
-  },
-  failed: {
-    backgroundColor: colors.danger,
-  },
-  indicatorText: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.bold,
-    color: colors.onPrimary,
-  },
-  headerText: {
-    flex: 1,
     gap: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
-  title: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
+  headline: {
+    fontFamily: fonts.display,
+    fontSize: fontSize.xl,
     color: colors.text,
   },
-  message: {
+  subline: {
     fontSize: fontSize.sm,
     color: colors.textMuted,
   },
   failure: {
     fontSize: fontSize.sm,
+    lineHeight: 20,
     color: colors.danger,
     backgroundColor: colors.dangerSoft,
     padding: spacing.md,
     borderRadius: radius.md,
-  },
-  rows: {
-    gap: spacing.sm,
   },
 });

@@ -55,7 +55,7 @@ const ActivityScreen = () => {
       return (
         <StateMessage
           tone="danger"
-          icon="!"
+          icon="cloud-offline-outline"
           title="Couldn't load activity"
           message={describeApiError(activityQuery.error)}
           actionLabel="Try again"
@@ -64,7 +64,7 @@ const ActivityScreen = () => {
         />
       );
     }
-    return <StateMessage icon="◎" title="No activity yet" message="Payback, reversals and claims will appear here." />;
+    return <StateMessage icon="receipt-outline" title="No activity yet" message="Payback, reversals and claims will appear here." />;
   };
 
   return (

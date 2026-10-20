@@ -16,7 +16,7 @@ import { StateMessage } from '@/components/ui/StateMessage';
 import { useBalances } from '@/hooks/useBalances';
 import { useManualRefresh } from '@/hooks/useManualRefresh';
 import { summarizeBalances } from '@/money/balances';
-import { colors, fontSize, radius, spacing } from '@/theme/tokens';
+import { colors, fontSize, fonts, radius, spacing } from '@/theme/tokens';
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -33,7 +33,7 @@ const HomeScreen = () => {
       return (
         <StateMessage
           tone="danger"
-          icon="!"
+          icon="cloud-offline-outline"
           title="Couldn't load your balances"
           message={describeApiError(balancesQuery.error)}
           actionLabel="Try again"
@@ -44,7 +44,13 @@ const HomeScreen = () => {
     }
     return (
       <>
-        <BalanceSummary totals={totals} asOf={snapshot.asOf} isRefreshing={isRefreshing} onRefresh={refresh} />
+        <BalanceSummary
+          totals={totals}
+          balances={snapshot.balances}
+          asOf={snapshot.asOf}
+          isRefreshing={isRefreshing}
+          onRefresh={refresh}
+        />
         {balancesQuery.isRefetchError ? (
           <Text style={styles.refreshError}>
             Couldn't refresh: {describeApiError(balancesQuery.error)} Showing the last known balances.
@@ -52,7 +58,7 @@ const HomeScreen = () => {
         ) : null}
         {snapshot.balances.length === 0 ? (
           <StateMessage
-            icon="◎"
+            icon="leaf-outline"
             title="No payback yet"
             message="When you trade on a connected exchange, your payback shows up here."
             actionLabel="Check again"
@@ -61,6 +67,7 @@ const HomeScreen = () => {
           />
         ) : (
           <View style={styles.list}>
+            <Text style={styles.sectionLabel}>Tap an asset to claim it</Text>
             {snapshot.balances.map((balance) => (
               <AssetRow
                 key={balance.asset}
@@ -71,7 +78,7 @@ const HomeScreen = () => {
             ))}
           </View>
         )}
-        <AppButton label="View activity" variant="secondary" onPress={() => router.push('/activity')} />
+        <AppButton label="View activity" variant="ghost" onPress={() => router.push('/activity')} />
       </>
     );
   };
@@ -91,7 +98,14 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
   list: {
-    gap: spacing.md,
+    gap: spacing.sm,
+  },
+  sectionLabel: {
+    fontFamily: fonts.displayMedium,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    marginLeft: spacing.xs,
+    marginBottom: spacing.xs,
   },
   refreshError: {
     fontSize: fontSize.sm,

@@ -1,13 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
+import { ComponentProps } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, fontSize, fontWeight, radius, spacing } from '@/theme/tokens';
+import { colors, fontSize, fonts, radius, spacing } from '@/theme/tokens';
 
 import { AppButton } from './AppButton';
 
 type Tone = 'neutral' | 'danger';
 
 type StateMessageProps = {
-  icon: string;
+  icon: ComponentProps<typeof Ionicons>['name'];
   title: string;
   message: string;
   tone?: Tone;
@@ -26,9 +28,9 @@ export const StateMessage = ({
   onAction,
   actionLoading = false,
 }: StateMessageProps) => (
-  <View style={[styles.container, tone === 'danger' && styles.danger]}>
+  <View style={styles.container}>
     <View style={[styles.iconBadge, tone === 'danger' && styles.iconBadgeDanger]}>
-      <Text style={styles.icon}>{icon}</Text>
+      <Ionicons name={icon} size={26} color={tone === 'danger' ? colors.danger : colors.primary} />
     </View>
     <Text style={styles.title}>{title}</Text>
     <Text style={styles.message}>{message}</Text>
@@ -43,36 +45,33 @@ export const StateMessage = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    padding: spacing.xl,
+    paddingVertical: spacing.xl + spacing.sm,
+    paddingHorizontal: spacing.xl,
     gap: spacing.sm,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-  },
-  danger: {
-    backgroundColor: colors.dangerSoft,
+    borderRadius: radius.xl,
   },
   iconBadge: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: radius.pill,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: spacing.xs,
   },
   iconBadgeDanger: {
     backgroundColor: colors.dangerSoft,
   },
-  icon: {
-    fontSize: fontSize.lg,
-  },
   title: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
+    fontFamily: fonts.display,
+    fontSize: fontSize.lg,
     color: colors.text,
     textAlign: 'center',
   },
   message: {
     fontSize: fontSize.sm,
+    lineHeight: 20,
     color: colors.textMuted,
     textAlign: 'center',
   },

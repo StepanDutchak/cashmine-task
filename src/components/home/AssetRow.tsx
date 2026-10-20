@@ -1,10 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ClaimBadge } from '@/claims/inFlightClaims';
+import { Amount } from '@/components/ui/Amount';
+import { AssetAvatar } from '@/components/ui/AssetAvatar';
 import { formatUnits } from '@/money/amount';
 import { AssetBalance, usdCentsOf } from '@/money/balances';
-import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/tokens';
-import { formatUsdCents, groupDigits } from '@/utils/format';
+import { colors, fontSize, fontWeight, fonts, layout, radius, spacing } from '@/theme/tokens';
+import { formatUsdCents } from '@/utils/format';
 
 type AssetRowProps = {
   balance: AssetBalance;
@@ -17,10 +20,13 @@ const BADGE_LABEL: Record<NonNullable<ClaimBadge>, string> = {
   failed: 'Last claim failed · amount returned',
 };
 
-const formatAmount = (units: bigint, decimals: number): string => groupDigits(formatUnits(units, decimals));
-
 export const AssetRow = ({ balance, badge, onPress }: AssetRowProps) => {
   const { asset, decimals, available, pending, claiming } = balance;
+  const details = [
+    pending > 0n ? `Pending ${formatUnits(pending, decimals)}` : null,
+    claiming > 0n ? `Claiming ${formatUnits(claiming, decimals)}` : null,
+  ].filter(Boolean);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -28,32 +34,32 @@ export const AssetRow = ({ balance, badge, onPress }: AssetRowProps) => {
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{asset.slice(0, 1)}</Text>
-      </View>
+      <AssetAvatar asset={asset} />
       <View style={styles.body}>
         <View style={styles.line}>
           <Text style={styles.asset}>{asset}</Text>
-          <Text style={styles.amount} numberOfLines={1}>
-            {formatAmount(available, decimals)}
-          </Text>
+          <Amount value={formatUnits(available, decimals)} size="sm" align="right" />
         </View>
         <View style={styles.line}>
-          <Text style={styles.muted}>Available</Text>
-          <Text style={styles.muted}>{formatUsdCents(usdCentsOf(balance, available))}</Text>
+          <Text style={styles.muted} numberOfLines={1}>
+            {details.length > 0 ? details.join(' · ') : 'Available'}
+          </Text>
+          <Text style={styles.usd}>{formatUsdCents(usdCentsOf(balance, available))}</Text>
         </View>
-        {pending > 0n || claiming > 0n ? (
-          <Text style={styles.secondary}>
-            Pending {formatAmount(pending, decimals)} · Claiming {formatAmount(claiming, decimals)}
-          </Text>
-        ) : null}
         {badge ? (
-          <Text style={[styles.badgeChip, badge === 'failed' ? styles.badgeFailed : styles.badgeInProgress]}>
-            {BADGE_LABEL[badge]}
-          </Text>
+          <View style={[styles.badge, badge === 'failed' ? styles.badgeFailed : styles.badgeInProgress]}>
+            <Ionicons
+              name={badge === 'failed' ? 'alert-circle' : 'time'}
+              size={14}
+              color={badge === 'failed' ? colors.danger : colors.warning}
+            />
+            <Text style={[styles.badgeText, { color: badge === 'failed' ? colors.danger : colors.warning }]}>
+              {BADGE_LABEL[badge]}
+            </Text>
+          </View>
         ) : null}
       </View>
-      <Text style={styles.chevron}>›</Text>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>
   );
 };
@@ -63,75 +69,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    minHeight: layout.minTouchTarget,
-    padding: spacing.lg,
+    minHeight: layout.minTouchTarget + spacing.xl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
   },
   pressed: {
-    opacity: 0.7,
-  },
-  badge: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.bold,
-    color: colors.primary,
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
   body: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 2,
   },
   line: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'baseline',
     gap: spacing.sm,
   },
   asset: {
+    fontFamily: fonts.display,
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
-    color: colors.text,
-  },
-  amount: {
-    flexShrink: 1,
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
     color: colors.text,
   },
   muted: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  secondary: {
+    flexShrink: 1,
     fontSize: fontSize.xs,
     color: colors.textMuted,
   },
-  badgeChip: {
+  usd: {
+    fontFamily: fonts.mono,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
+    gap: spacing.xs,
     marginTop: spacing.xs,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: 3,
     borderRadius: radius.pill,
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.semibold,
-    overflow: 'hidden',
   },
   badgeInProgress: {
-    color: colors.warning,
     backgroundColor: colors.warningSoft,
   },
   badgeFailed: {
-    color: colors.danger,
     backgroundColor: colors.dangerSoft,
   },
-  chevron: {
-    fontSize: fontSize.xl,
-    color: colors.textMuted,
+  badgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
   },
 });

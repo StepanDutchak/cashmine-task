@@ -33,7 +33,7 @@ const ClaimStatusScreen = () => {
       return (
         <StateMessage
           tone="danger"
-          icon="!"
+          icon="cloud-offline-outline"
           title="Couldn't load this claim"
           message={describeApiError(claimQuery.error)}
           actionLabel="Try again"
@@ -48,7 +48,6 @@ const ClaimStatusScreen = () => {
         {claimQuery.isRefetchError && claim.status === 'pending' ? (
           <Text style={styles.warning}>Couldn&apos;t update the status. Retrying automatically…</Text>
         ) : null}
-        <AppButton label="Back to balances" onPress={() => router.dismissTo('/')} />
       </>
     );
   };
@@ -56,7 +55,9 @@ const ClaimStatusScreen = () => {
   return (
     <>
       <Stack.Screen options={{ title: 'Claim status' }} />
-      <Screen>{renderContent()}</Screen>
+      <Screen footer={claim ? <AppButton label="Back to balances" onPress={() => router.dismissTo('/')} /> : undefined}>
+        {renderContent()}
+      </Screen>
     </>
   );
 };

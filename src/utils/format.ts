@@ -13,6 +13,15 @@ export const groupDigits = (value: string): string => {
   return isNegative ? `-${body}` : body;
 };
 
+// Splits a formatted amount into the digits people read at a glance and the precision tail,
+// so long amounts stay exact but readable ("12.345678" + "901234591676").
+export const splitPrecisionDigits = (value: string, visibleDecimals: number): { head: string; tail: string } => {
+  const dotIndex = value.indexOf('.');
+  if (dotIndex === -1) return { head: value, tail: '' };
+  const cut = dotIndex + 1 + visibleDecimals;
+  return { head: value.slice(0, cut), tail: value.slice(cut) };
+};
+
 export const formatUsdCents = (cents: bigint): string => {
   const dollars = (cents / CENTS_PER_DOLLAR).toString();
   const remainder = (cents % CENTS_PER_DOLLAR).toString().padStart(2, '0');

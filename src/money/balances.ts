@@ -29,6 +29,15 @@ export const toAssetBalance = (balance: Balance): AssetBalance => ({
 export const usdCentsOf = (balance: AssetBalance, units: bigint): bigint =>
   toUsdCents(units, balance.decimals, balance.usdPrice);
 
+export type AssetShare = { asset: string; usdCents: bigint };
+
+// How the available USD total splits across assets, largest first; empty assets are left out.
+export const availableComposition = (balances: AssetBalance[]): AssetShare[] =>
+  balances
+    .map((balance) => ({ asset: balance.asset, usdCents: usdCentsOf(balance, balance.available) }))
+    .filter((share) => share.usdCents > 0n)
+    .sort((left, right) => (right.usdCents > left.usdCents ? 1 : right.usdCents < left.usdCents ? -1 : 0));
+
 // Totals are the sum of each row's rounded cents, so the visible rows add up to the total.
 export const summarizeBalances = (balances: AssetBalance[]): BalanceTotals =>
   balances.reduce<BalanceTotals>(

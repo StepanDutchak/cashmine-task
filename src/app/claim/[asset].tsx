@@ -25,7 +25,7 @@ const ClaimScreen = () => {
   const { asset } = useLocalSearchParams<{ asset: string }>();
   const state = useClaimSetup(asset);
 
-  const renderContent = () => {
+  const renderStatusContent = () => {
     switch (state.status) {
       case 'loading':
         return <ClaimSkeleton />;
@@ -33,7 +33,7 @@ const ClaimScreen = () => {
         return (
           <StateMessage
             tone="danger"
-            icon="!"
+            icon="cloud-offline-outline"
             title="Couldn't load claim details"
             message={describeApiError(state.error)}
             actionLabel="Try again"
@@ -42,16 +42,20 @@ const ClaimScreen = () => {
           />
         );
       case 'unknownAsset':
-        return <StateMessage icon="?" title={`No ${asset} balance`} message="This asset isn't in your balances." />;
-      case 'ready':
-        return <ClaimFlow asset={asset} setup={state.setup} />;
+        return (
+          <StateMessage icon="help-circle-outline" title={`No ${asset} balance`} message="This asset isn't in your balances." />
+        );
     }
   };
 
   return (
     <>
       <Stack.Screen options={{ title: `Claim ${asset}` }} />
-      <Screen>{renderContent()}</Screen>
+      {state.status === 'ready' ? (
+        <ClaimFlow asset={asset} setup={state.setup} />
+      ) : (
+        <Screen>{renderStatusContent()}</Screen>
+      )}
     </>
   );
 };

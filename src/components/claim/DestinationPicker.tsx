@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ClaimOptions } from '@/api/schemas';
-import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/tokens';
+import { colors, fontSize, fonts, layout, radius, spacing } from '@/theme/tokens';
 
 type DestinationPickerProps = {
   destinations: ClaimOptions['destinations'];
@@ -9,6 +10,8 @@ type DestinationPickerProps = {
   onSelect: (destinationId: string) => void;
   error: string | null;
 };
+
+const iconFor = (destinationId: string) => (destinationId.includes('wallet') ? 'wallet-outline' : 'business-outline');
 
 export const DestinationPicker = ({ destinations, selectedId, onSelect, error }: DestinationPickerProps) => (
   <View style={styles.container}>
@@ -23,8 +26,19 @@ export const DestinationPicker = ({ destinations, selectedId, onSelect, error }:
           onPress={() => onSelect(destination.id)}
           style={({ pressed }) => [styles.option, isSelected && styles.selected, pressed && styles.pressed]}
         >
-          <View style={[styles.radio, isSelected && styles.radioSelected]} />
+          <View style={[styles.icon, isSelected && styles.iconSelected]}>
+            <Ionicons
+              name={iconFor(destination.id)}
+              size={18}
+              color={isSelected ? colors.onPrimary : colors.textMuted}
+            />
+          </View>
           <Text style={styles.label}>{destination.label}</Text>
+          <Ionicons
+            name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+            size={22}
+            color={isSelected ? colors.primary : colors.border}
+          />
         </Pressable>
       );
     })}
@@ -37,19 +51,19 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
     color: colors.text,
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    minHeight: layout.minTouchTarget,
+    minHeight: layout.minTouchTarget + spacing.md,
     paddingHorizontal: spacing.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   selected: {
     borderColor: colors.primary,
@@ -58,24 +72,24 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
-  radio: {
-    width: 18,
-    height: 18,
-    borderRadius: radius.pill,
-    borderWidth: 2,
-    borderColor: colors.border,
+  icon: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  radioSelected: {
-    borderColor: colors.primary,
-    borderWidth: 6,
-  },
-  error: {
-    fontSize: fontSize.sm,
-    color: colors.danger,
+  iconSelected: {
+    backgroundColor: colors.primary,
   },
   label: {
     flex: 1,
     fontSize: fontSize.sm,
     color: colors.text,
+  },
+  error: {
+    fontSize: fontSize.sm,
+    color: colors.danger,
   },
 });

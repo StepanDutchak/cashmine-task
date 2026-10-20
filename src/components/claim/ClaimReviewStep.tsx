@@ -1,13 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ClaimAttempt } from '@/claims/claimAttempt';
 import { SubmissionState } from '@/claims/submissionState';
+import { Amount } from '@/components/ui/Amount';
 import { AppButton } from '@/components/ui/AppButton';
-import { Card } from '@/components/ui/Card';
+import { DetailRow } from '@/components/ui/DetailRow';
+import { Perforation } from '@/components/ui/Perforation';
+import { Screen } from '@/components/ui/Screen';
+import { formatUnits } from '@/money/amount';
 import { ClaimQuote } from '@/money/claimAmount';
-import { colors, fontSize, fontWeight, radius, spacing } from '@/theme/tokens';
-
-import { QuoteRows } from './QuoteRows';
+import { colors, fontSize, fonts, radius, spacing } from '@/theme/tokens';
 
 type ClaimReviewStepProps = {
   attempt: ClaimAttempt;
@@ -38,84 +41,98 @@ export const ClaimReviewStep = ({
   const isUnknown = submission.kind === 'unknown';
   const { asset } = attempt.body;
 
-  return (
+  const footer = (
     <>
-      <Card>
-        <Text style={styles.title}>Review your claim</Text>
-        <QuoteRows quote={quote} decimals={decimals} asset={asset} showAmount />
-        <View style={styles.destination}>
-          <Text style={styles.muted}>To</Text>
-          <Text style={styles.destinationLabel}>{destinationLabel}</Text>
-        </View>
-      </Card>
+      <AppButton label={isUnknown ? 'Check again' : 'Confirm claim'} onPress={onConfirm} loading={isBusy} />
+      {isUnknown ? (
+        <AppButton label="Back to balances" variant="ghost" onPress={onLeave} />
+      ) : (
+        <AppButton label="Edit" variant="ghost" onPress={onEdit} disabled={isBusy} />
+      )}
+    </>
+  );
+
+  return (
+    <Screen footer={footer}>
+      <View style={styles.receipt}>
+        <Text style={styles.eyebrow}>You're claiming</Text>
+        <Amount value={formatUnits(quote.amount, decimals)} asset={asset} size="xl" />
+        <Perforation />
+        <DetailRow label="Fee" value={<Amount value={`−${formatUnits(quote.fee, decimals)}`} asset={asset} size="sm" />} />
+        <DetailRow label="To" value={destinationLabel} />
+        <Perforation />
+        <Text style={styles.eyebrow}>You receive</Text>
+        <Amount value={formatUnits(quote.receive, decimals)} asset={asset} size="xl" tone="positive" />
+      </View>
 
       {submission.kind === 'checking' ? (
-        <Text style={[styles.banner, styles.warning]}>
-          No answer yet. Checking whether your claim went through…
-        </Text>
+        <View style={[styles.banner, styles.warning]}>
+          <Ionicons name="hourglass-outline" size={18} color={colors.warning} />
+          <Text style={[styles.bannerText, styles.warningText]}>
+            No answer yet. Checking whether your claim went through…
+          </Text>
+        </View>
       ) : null}
       {isUnknown ? (
         <View style={[styles.banner, styles.warning]}>
-          <Text style={styles.bannerTitle}>We couldn&apos;t confirm your claim</Text>
-          <Text style={styles.bannerText}>{UNKNOWN_EXPLANATION}</Text>
+          <Ionicons name="help-circle-outline" size={18} color={colors.warning} />
+          <View style={styles.bannerBody}>
+            <Text style={[styles.bannerTitle, styles.warningText]}>We couldn&apos;t confirm your claim</Text>
+            <Text style={[styles.bannerText, styles.warningText]}>{UNKNOWN_EXPLANATION}</Text>
+          </View>
         </View>
       ) : null}
       {submission.kind === 'rejected' ? (
-        <Text style={[styles.banner, styles.danger]}>Claim not created: {submission.message}</Text>
+        <View style={[styles.banner, styles.danger]}>
+          <Ionicons name="close-circle-outline" size={18} color={colors.danger} />
+          <Text style={[styles.bannerText, styles.dangerText]}>Claim not created: {submission.message}</Text>
+        </View>
       ) : null}
-
-      <AppButton label={isUnknown ? 'Check again' : 'Confirm claim'} onPress={onConfirm} loading={isBusy} />
-      {isUnknown ? (
-        <AppButton label="Back to balances" variant="secondary" onPress={onLeave} />
-      ) : (
-        <AppButton label="Edit" variant="secondary" onPress={onEdit} disabled={isBusy} />
-      )}
-    </>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: fontSize.lg,
-    fontWeight: fontWeight.semibold,
-    color: colors.text,
-  },
-  destination: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  receipt: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
     gap: spacing.md,
   },
-  muted: {
+  eyebrow: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.sm,
     color: colors.textMuted,
   },
-  destinationLabel: {
-    flexShrink: 1,
-    textAlign: 'right',
-    fontSize: fontSize.sm,
-    color: colors.text,
-  },
   banner: {
+    flexDirection: 'row',
+    gap: spacing.sm,
     padding: spacing.md,
     borderRadius: radius.md,
+  },
+  bannerBody: {
+    flex: 1,
     gap: spacing.xs,
-    fontSize: fontSize.sm,
   },
   warning: {
     backgroundColor: colors.warningSoft,
-    color: colors.warning,
   },
   danger: {
     backgroundColor: colors.dangerSoft,
-    color: colors.danger,
   },
   bannerTitle: {
+    fontFamily: fonts.displayMedium,
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-    color: colors.warning,
   },
   bannerText: {
+    flex: 1,
     fontSize: fontSize.sm,
+    lineHeight: 20,
+  },
+  warningText: {
     color: colors.warning,
+  },
+  dangerText: {
+    color: colors.danger,
   },
 });
