@@ -7,6 +7,7 @@ import { useTokenContext } from '@/auth/TokenProvider';
 import { AssetRow } from '@/components/home/AssetRow';
 import { BalanceSummary } from '@/components/home/BalanceSummary';
 import { BalancesSkeleton } from '@/components/home/BalancesSkeleton';
+import { AppButton } from '@/components/ui/AppButton';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { Screen } from '@/components/ui/Screen';
 import { StateMessage } from '@/components/ui/StateMessage';
@@ -66,6 +67,7 @@ const HomeScreen = () => {
             ))}
           </View>
         )}
+        <AppButton label="View activity" variant="secondary" onPress={() => router.push('/activity')} />
       </>
     );
   };
