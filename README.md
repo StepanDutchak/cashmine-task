@@ -28,7 +28,7 @@ The token is never read from env or bundled. The app asks for it at runtime. The
 - **Claim tracking:** a status screen polls until the claim completes or fails, and shows the failure reason. Assets on Home show **Claim in progress** or **Last claim failed**.
 - **Safe retries:** each claim attempt gets one Idempotency-Key for one exact request. Timeouts, network errors and 5xx responses are retried with the same key, so a claim can never be created twice. An attempt whose result is still unknown survives navigation and reloads.
 - **Activity:** a paginated history of accruals, reversals and claims.
-- **Tests:** 57 unit tests for amount parsing, validation, fee, USD totals, amount display and the balance-after-claim logic (`src/money`, `src/claims`, `src/utils` `__tests__`).
+- **Tests:** 66 unit tests for amount parsing, validation, fee, USD totals, amount display, claim submission states and the balance-after-claim logic (`src/money`, `src/claims`, `src/utils` `__tests__`).
 
 Decisions, the AI workflow and known issues are in [NOTES.md](NOTES.md). AI conversations are in [`ai-logs/`](ai-logs/).
 
