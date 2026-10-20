@@ -47,3 +47,4 @@ example
 .token
 .vercel
 .env*
+!.env.example
