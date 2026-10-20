@@ -24,11 +24,11 @@ The token is never read from env or bundled. The app asks for it at runtime. The
 ## What works
 
 - **Balances (Home):** available, pending and claiming per asset; the available total in USD (with pending and claiming totals); how fresh the snapshot is, from the server's `asOf`, with a warning when it is older than 60 s; auto refresh every 15 s and a Refresh button; skeleton, error with retry, and empty states.
-- **Claim:** pick an asset, enter an amount or tap **Max**, choose a destination (no default when there is more than one), see the fee and the amount you receive, review, then confirm. The input is validated against the API rules: format, decimals, minimum, available, and the fee must be covered.
+- **Claim:** pick an asset, enter an amount or tap **25% / 50% / Max**, choose a destination (no default when there is more than one), see the fee and the amount you receive, review, then confirm. The input is validated against the API rules: format, decimals, minimum, available, and the fee must be covered.
 - **Claim tracking:** a status screen polls until the claim completes or fails, and shows the failure reason. Assets on Home show **Claim in progress** or **Last claim failed**.
 - **Safe retries:** each claim attempt gets one Idempotency-Key for one exact request. Timeouts, network errors and 5xx responses are retried with the same key, so a claim can never be created twice. An attempt whose result is still unknown survives navigation and reloads.
 - **Activity:** a paginated history of accruals, reversals and claims.
-- **Tests:** 53 unit tests for amount parsing, validation, fee, USD totals and the balance-after-claim logic (`src/money/__tests__`, `src/claims/__tests__`).
+- **Tests:** 57 unit tests for amount parsing, validation, fee, USD totals, amount display and the balance-after-claim logic (`src/money`, `src/claims`, `src/utils` `__tests__`).
 
 Decisions, the AI workflow and known issues are in [NOTES.md](NOTES.md). AI conversations are in [`ai-logs/`](ai-logs/).
 
