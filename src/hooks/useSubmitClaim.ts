@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createClaim } from '@/api/endpoints';
-import { isOutcomeUnknown, isRetryable } from '@/api/errors';
+import { isRetryable, mayHaveCreatedClaim } from '@/api/errors';
 import { queryKeys } from '@/api/queryKeys';
 import { retryDelayFor } from '@/api/queryClient';
 import { Claim } from '@/api/schemas';
@@ -33,8 +33,8 @@ export const useSubmitClaim = (onSubmitted: (claim: Claim) => void) => {
       onSubmitted(claim);
     },
     onError: (error, attempt) => {
-      // Keep the attempt while the outcome is unknown; otherwise the claim was definitely not created.
-      if (isOutcomeUnknown(error)) return;
+      // Keep the attempt while a claim may exist; otherwise the claim was definitely not created.
+      if (mayHaveCreatedClaim(error)) return;
       clearUnresolvedAttempt(attempt.body.asset);
       // A rejection (e.g. amount above the live available) usually means our snapshot is behind.
       queryClient.invalidateQueries({ queryKey: queryKeys.balances });

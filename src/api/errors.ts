@@ -50,6 +50,10 @@ export const isOutcomeUnknown = (error: unknown): boolean =>
   error instanceof ApiError &&
   (error.kind === 'network' || error.kind === 'timeout' || isServerError(error));
 
+// After a failed claim POST chain: could a claim exist on the server? A final 429 counts too:
+// it only says the last retry wasn't processed, while an earlier, timed-out try may have been.
+export const mayHaveCreatedClaim = (error: unknown): boolean => isOutcomeUnknown(error) || isRateLimited(error);
+
 export const describeApiError = (error: unknown): string => {
   if (!(error instanceof ApiError)) return 'Something went wrong. Please try again.';
   if (error.kind === 'network') return "Can't reach CashMine. Check your connection and try again.";

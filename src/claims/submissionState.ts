@@ -1,4 +1,4 @@
-import { describeApiError, isOutcomeUnknown } from '@/api/errors';
+import { describeApiError, mayHaveCreatedClaim } from '@/api/errors';
 
 export type SubmissionState =
   | { kind: 'idle' }
@@ -18,6 +18,6 @@ type MutationSnapshot = {
 export const toSubmissionState = (mutation: MutationSnapshot): SubmissionState => {
   if (mutation.isPending) return mutation.failureCount > 0 ? { kind: 'checking' } : { kind: 'submitting' };
   if (!mutation.isError) return { kind: 'idle' };
-  if (isOutcomeUnknown(mutation.error)) return { kind: 'unknown' };
+  if (mayHaveCreatedClaim(mutation.error)) return { kind: 'unknown' };
   return { kind: 'rejected', message: describeApiError(mutation.error) };
 };
