@@ -1,7 +1,7 @@
 // Amounts travel as decimal strings (API contract) and are computed as bigint
 // counts of the asset's smallest unit, so no float ever touches money.
 
-const DECIMAL_PATTERN = /^(0|[1-9]\d*)(\.\d+)?$/;
+export const DECIMAL_PATTERN = /^(0|[1-9]\d*)(\.\d+)?$/;
 const CENTS_PER_DOLLAR = 100n;
 
 export type AmountParseError = 'EMPTY' | 'FORMAT' | 'TOO_MANY_DECIMALS';
