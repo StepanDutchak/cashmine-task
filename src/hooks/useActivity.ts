@@ -1,12 +1,13 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { fetchActivity } from '@/api/endpoints';
+import { queryKeys } from '@/api/queryKeys';
 import { useToken } from '@/auth/TokenProvider';
 
 export const useActivity = () => {
   const token = useToken();
   return useInfiniteQuery({
-    queryKey: ['activity'],
+    queryKey: queryKeys.activity,
     queryFn: ({ pageParam }) => fetchActivity(token, pageParam),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,

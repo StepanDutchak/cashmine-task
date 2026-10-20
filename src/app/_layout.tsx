@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { createQueryClient } from '@/api/queryClient';
 import { TokenProvider, useTokenContext } from '@/auth/TokenProvider';
+import { ClaimTrackerProvider } from '@/claims/ClaimTrackerProvider';
 import { TokenForm } from '@/components/TokenForm';
 import { colors, fontWeight } from '@/theme/tokens';
 
@@ -15,14 +16,16 @@ const AuthenticatedApp = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.surface },
-          headerTitleStyle: { fontWeight: fontWeight.semibold, color: colors.text },
-          headerTintColor: colors.primary,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      />
+      <ClaimTrackerProvider>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.surface },
+            headerTitleStyle: { fontWeight: fontWeight.semibold, color: colors.text },
+            headerTintColor: colors.primary,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        />
+      </ClaimTrackerProvider>
     </QueryClientProvider>
   );
 };

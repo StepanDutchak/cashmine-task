@@ -5,11 +5,12 @@ import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/t
 
 type DestinationPickerProps = {
   destinations: ClaimOptions['destinations'];
-  selectedId: string;
+  selectedId: string | null;
   onSelect: (destinationId: string) => void;
+  error: string | null;
 };
 
-export const DestinationPicker = ({ destinations, selectedId, onSelect }: DestinationPickerProps) => (
+export const DestinationPicker = ({ destinations, selectedId, onSelect, error }: DestinationPickerProps) => (
   <View style={styles.container}>
     <Text style={styles.title}>Send to</Text>
     {destinations.map((destination) => {
@@ -17,8 +18,8 @@ export const DestinationPicker = ({ destinations, selectedId, onSelect }: Destin
       return (
         <Pressable
           key={destination.id}
-          accessibilityRole="radio"
-          accessibilityState={{ checked: isSelected }}
+          role="radio"
+          aria-checked={isSelected}
           onPress={() => onSelect(destination.id)}
           style={({ pressed }) => [styles.option, isSelected && styles.selected, pressed && styles.pressed]}
         >
@@ -27,6 +28,7 @@ export const DestinationPicker = ({ destinations, selectedId, onSelect }: Destin
         </Pressable>
       );
     })}
+    {error ? <Text style={styles.error}>{error}</Text> : null}
   </View>
 );
 
@@ -66,6 +68,10 @@ const styles = StyleSheet.create({
   radioSelected: {
     borderColor: colors.primary,
     borderWidth: 6,
+  },
+  error: {
+    fontSize: fontSize.sm,
+    color: colors.danger,
   },
   label: {
     flex: 1,

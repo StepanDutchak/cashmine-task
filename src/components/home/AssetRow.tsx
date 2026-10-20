@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ClaimBadge } from '@/claims/inFlightClaims';
 import { formatUnits } from '@/money/amount';
 import { AssetBalance, usdCentsOf } from '@/money/balances';
 import { colors, fontSize, fontWeight, layout, radius, spacing } from '@/theme/tokens';
@@ -7,12 +8,18 @@ import { formatUsdCents, groupDigits } from '@/utils/format';
 
 type AssetRowProps = {
   balance: AssetBalance;
+  badge: ClaimBadge;
   onPress: () => void;
+};
+
+const BADGE_LABEL: Record<NonNullable<ClaimBadge>, string> = {
+  inProgress: 'Claim in progress',
+  failed: 'Last claim failed · amount returned',
 };
 
 const formatAmount = (units: bigint, decimals: number): string => groupDigits(formatUnits(units, decimals));
 
-export const AssetRow = ({ balance, onPress }: AssetRowProps) => {
+export const AssetRow = ({ balance, badge, onPress }: AssetRowProps) => {
   const { asset, decimals, available, pending, claiming } = balance;
   return (
     <Pressable
@@ -38,6 +45,11 @@ export const AssetRow = ({ balance, onPress }: AssetRowProps) => {
         {pending > 0n || claiming > 0n ? (
           <Text style={styles.secondary}>
             Pending {formatAmount(pending, decimals)} · Claiming {formatAmount(claiming, decimals)}
+          </Text>
+        ) : null}
+        {badge ? (
+          <Text style={[styles.badgeChip, badge === 'failed' ? styles.badgeFailed : styles.badgeInProgress]}>
+            {BADGE_LABEL[badge]}
           </Text>
         ) : null}
       </View>
@@ -99,6 +111,24 @@ const styles = StyleSheet.create({
   secondary: {
     fontSize: fontSize.xs,
     color: colors.textMuted,
+  },
+  badgeChip: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.semibold,
+    overflow: 'hidden',
+  },
+  badgeInProgress: {
+    color: colors.warning,
+    backgroundColor: colors.warningSoft,
+  },
+  badgeFailed: {
+    color: colors.danger,
+    backgroundColor: colors.dangerSoft,
   },
   chevron: {
     fontSize: fontSize.xl,

@@ -4,6 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { describeApiError } from '@/api/errors';
 import { useTokenContext } from '@/auth/TokenProvider';
+import { useClaimTracker } from '@/claims/ClaimTrackerProvider';
+import { claimBadgeFor } from '@/claims/inFlightClaims';
 import { AssetRow } from '@/components/home/AssetRow';
 import { BalanceSummary } from '@/components/home/BalanceSummary';
 import { BalancesSkeleton } from '@/components/home/BalancesSkeleton';
@@ -20,6 +22,7 @@ const HomeScreen = () => {
   const router = useRouter();
   const { clearToken } = useTokenContext();
   const balancesQuery = useBalances();
+  const { claims } = useClaimTracker();
   const { isRefreshing, refresh } = useManualRefresh(balancesQuery.refetch);
   const snapshot = balancesQuery.data;
   const totals = useMemo(() => (snapshot ? summarizeBalances(snapshot.balances) : null), [snapshot]);
@@ -62,6 +65,7 @@ const HomeScreen = () => {
               <AssetRow
                 key={balance.asset}
                 balance={balance}
+                badge={claimBadgeFor(balance, claims)}
                 onPress={() => router.push({ pathname: '/claim/[asset]', params: { asset: balance.asset } })}
               />
             ))}

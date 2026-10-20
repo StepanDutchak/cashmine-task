@@ -2,22 +2,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createClaim } from '@/api/endpoints';
 import { isOutcomeUnknown, isRetryable } from '@/api/errors';
+import { queryKeys } from '@/api/queryKeys';
 import { retryDelayFor } from '@/api/queryClient';
 import { Claim } from '@/api/schemas';
 import { useToken } from '@/auth/TokenProvider';
 import { ClaimAttempt, clearUnresolvedAttempt, saveUnresolvedAttempt } from '@/claims/claimAttempt';
-
-import { balancesQueryKey } from './useBalances';
+import { useClaimTracker } from '@/claims/ClaimTrackerProvider';
 
 const MAX_AUTOMATIC_RETRIES = 4;
-
-export const claimQueryKey = (claimId: string) => ['claim', claimId] as const;
 
 // Retries reuse the same attempt (same Idempotency-Key + body), so they are safe:
 // the server replays the original claim instead of creating a second one.
 export const useSubmitClaim = (onSubmitted: (claim: Claim) => void) => {
   const token = useToken();
   const queryClient = useQueryClient();
+  const { track } = useClaimTracker();
 
   return useMutation({
     mutationFn: (attempt: ClaimAttempt) => {
@@ -28,8 +27,9 @@ export const useSubmitClaim = (onSubmitted: (claim: Claim) => void) => {
     retryDelay: retryDelayFor,
     onSuccess: (claim, attempt) => {
       clearUnresolvedAttempt(attempt.body.asset);
-      queryClient.setQueryData(claimQueryKey(claim.id), claim);
-      queryClient.invalidateQueries({ queryKey: balancesQueryKey });
+      queryClient.setQueryData(queryKeys.claim(claim.id), claim);
+      track(claim);
+      queryClient.invalidateQueries({ queryKey: queryKeys.activity });
       onSubmitted(claim);
     },
     onError: (error, attempt) => {
@@ -37,7 +37,7 @@ export const useSubmitClaim = (onSubmitted: (claim: Claim) => void) => {
       if (isOutcomeUnknown(error)) return;
       clearUnresolvedAttempt(attempt.body.asset);
       // A rejection (e.g. amount above the live available) usually means our snapshot is behind.
-      queryClient.invalidateQueries({ queryKey: balancesQueryKey });
+      queryClient.invalidateQueries({ queryKey: queryKeys.balances });
     },
   });
 };

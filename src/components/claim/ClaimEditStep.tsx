@@ -16,7 +16,7 @@ type ClaimEditStepProps = {
   setup: ClaimSetup;
   amountInput: string;
   onAmountChange: (value: string) => void;
-  destinationId: string;
+  destinationId: string | null;
   onDestinationChange: (destinationId: string) => void;
   showErrors: boolean;
   onReview: () => void;
@@ -36,6 +36,7 @@ export const ClaimEditStep = ({
   const result = validateClaimAmount(amountInput, rules);
   const errorMessage =
     !result.ok && (showErrors || amountInput !== '') ? describeClaimAmountError(result.error, rules, asset) : null;
+  const destinationError = showErrors && !destinationId ? 'Choose where to send your claim.' : null;
   const format = (units: bigint) => `${groupDigits(formatUnits(units, rules.decimals))} ${asset}`;
 
   return (
@@ -73,7 +74,12 @@ export const ClaimEditStep = ({
       </Card>
       {destinations.length > 1 ? (
         <Card>
-          <DestinationPicker destinations={destinations} selectedId={destinationId} onSelect={onDestinationChange} />
+          <DestinationPicker
+            destinations={destinations}
+            selectedId={destinationId}
+            onSelect={onDestinationChange}
+            error={destinationError}
+          />
         </Card>
       ) : null}
       <AppButton label="Review claim" onPress={onReview} />

@@ -20,12 +20,14 @@ type ClaimFlowProps = {
 export const ClaimFlow = ({ asset, setup }: ClaimFlowProps) => {
   const router = useRouter();
   const { rules, destinations } = setup;
+  const leave = () => (router.canGoBack() ? router.back() : router.replace('/'));
   // An attempt whose outcome we never learned (timeout, reload) is resumed, never replaced.
   const [restoredAttempt] = useState(() => loadUnresolvedAttempt(asset));
   const [attempt, setAttempt] = useState<ClaimAttempt | null>(restoredAttempt);
   const [amountInput, setAmountInput] = useState(restoredAttempt?.body.amount ?? '');
-  const [destinationId, setDestinationId] = useState(
-    restoredAttempt?.body.destinationId ?? destinations[0]?.id ?? '',
+  // With several destinations the user must pick one: money never goes to a default they didn't choose.
+  const [destinationId, setDestinationId] = useState<string | null>(
+    restoredAttempt?.body.destinationId ?? (destinations.length === 1 ? destinations[0].id : null),
   );
   const [showErrors, setShowErrors] = useState(false);
 
@@ -46,7 +48,7 @@ export const ClaimFlow = ({ asset, setup }: ClaimFlowProps) => {
         title="Not enough to claim yet"
         message={`You can claim from ${formatUnits(rules.minAmount, rules.decimals)} ${asset}, and the amount must cover the fee.`}
         actionLabel="Back to balances"
-        onAction={() => router.back()}
+        onAction={leave}
       />
     );
   }
@@ -59,7 +61,7 @@ export const ClaimFlow = ({ asset, setup }: ClaimFlowProps) => {
     const goToReview = () => {
       setShowErrors(true);
       const result = validateClaimAmount(amountInput, rules);
-      if (!result.ok) return;
+      if (!result.ok || !destinationId) return;
       setAttempt(createClaimAttempt({ asset, amount: result.amountText, destinationId }));
     };
     return (
@@ -92,7 +94,7 @@ export const ClaimFlow = ({ asset, setup }: ClaimFlowProps) => {
         mutation.reset();
         setAttempt(null);
       }}
-      onLeave={() => router.back()}
+      onLeave={leave}
     />
   );
 };
