@@ -35,7 +35,11 @@ export const ClaimStatusCard = ({ claim }: { claim: Claim }) => {
       <View style={styles.rows}>
         <DetailRow label="Claimed" value={format(claim.amount)} />
         <DetailRow label="Fee" value={`− ${format(claim.fee)}`} />
-        <DetailRow label="You receive" value={format(claim.receiveAmount)} emphasized />
+        <DetailRow
+          label={claim.status === 'failed' ? 'Not received' : 'You receive'}
+          value={format(claim.receiveAmount)}
+          emphasized={claim.status !== 'failed'}
+        />
         <DetailRow label="Claim ID" value={claim.id} />
       </View>
     </Card>

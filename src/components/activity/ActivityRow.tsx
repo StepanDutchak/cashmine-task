@@ -17,7 +17,8 @@ const STATUS_TONE: Record<ActivityItem['status'], 'neutral' | 'warning' | 'dange
   failed: 'danger',
 };
 
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
+// Fixed locale so dates match the English UI copy.
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
   hour: '2-digit',
