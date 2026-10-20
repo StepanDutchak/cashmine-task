@@ -1,5 +1,7 @@
 import { ReactNode, createContext, useCallback, useContext, useMemo, useState } from 'react';
 
+import { clearAllUnresolvedAttempts } from '@/claims/claimAttempt';
+
 import { loadToken, removeToken, saveToken } from './tokenStorage';
 
 type TokenContextValue = {
@@ -23,6 +25,8 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
 
   const clearToken = useCallback((reason?: string) => {
     removeToken();
+    // Pending attempts belong to this token; replaying them under another token would create new claims.
+    clearAllUnresolvedAttempts();
     setSignOutReason(reason ?? null);
     setTokenState(null);
   }, []);

@@ -23,6 +23,13 @@ export type ClaimAmountResult =
   | { ok: true; quote: ClaimQuote; amountText: string }
   | { ok: false; error: ClaimAmountError };
 
+// The fee is taken from the claimed amount: the user receives amount minus fee.
+export const quoteClaim = (amount: bigint, fee: bigint): ClaimQuote => ({
+  amount,
+  fee,
+  receive: amount - fee,
+});
+
 export const validateClaimAmount = (rawInput: string, rules: ClaimRules): ClaimAmountResult => {
   const parsed = parseAmount(normalizeAmountInput(rawInput), rules.decimals);
   if (!parsed.ok) return parsed;
@@ -31,14 +38,10 @@ export const validateClaimAmount = (rawInput: string, rules: ClaimRules): ClaimA
   if (amount < rules.minAmount) return { ok: false, error: 'BELOW_MIN' };
   if (amount > rules.available) return { ok: false, error: 'ABOVE_AVAILABLE' };
 
-  const receive = amount - rules.fee;
-  if (receive <= 0n) return { ok: false, error: 'NOTHING_TO_RECEIVE' };
+  const quote = quoteClaim(amount, rules.fee);
+  if (quote.receive <= 0n) return { ok: false, error: 'NOTHING_TO_RECEIVE' };
 
-  return {
-    ok: true,
-    quote: { amount, fee: rules.fee, receive },
-    amountText: formatUnits(amount, rules.decimals),
-  };
+  return { ok: true, quote, amountText: formatUnits(amount, rules.decimals) };
 };
 
 export const canClaimAnything = (rules: ClaimRules): boolean =>
