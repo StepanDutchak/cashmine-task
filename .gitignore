@@ -45,3 +45,5 @@ example
 # secrets
 .env
 .token
+.vercel
+.env*
